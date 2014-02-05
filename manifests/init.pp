@@ -52,6 +52,9 @@
 #   sql             => false,
 #  }
 #
+# WARNING: This class currently only supports Windows 2012. The .NET framework
+# install was causing failures on Windows 2012 which ships with the .NET
+# framework preinstalled. TODO: modify this to support older versions of Windows.
 
 class citrix_xd7 (
   $source           = 'D:\\x64\\XenDesktop Setup\\',
@@ -131,16 +134,11 @@ class citrix_xd7 (
     $sql_install = '/nosql'
   }
 
-  # Add Dot Net Framework Feature
-  exec {'Install dotnet':
-      command   => "${citrix_xd7::param::powershell::command} -Command \"Import-Module ServerManager; Add-WindowsFeature Net-Framework-Core\"",
-      path      => "${citrix_xd7::param::powershell::path};${::path}",    
-  } ->
-  
   # Install Xendesktop 7 from installation source
   exec { 'Install XD':
     command => "XenDesktopServerSetup.exe /components $controller_install$desktopstudio_install$licenseserver_install$desktopdirector_install$storefront_install $sql_install /quiet /configure_firewall",
     path    => "$source",
-}
+    timeout => 30 * 60,
+  }
 
 }
